@@ -1,12 +1,11 @@
-import RESTAdapter from "ember-data/adapters/rest";
 import { update as config } from "config";
-import AdapterMixin from "data/models/-mixins/adapter";
+import CustomRESTAdapter from "data/models/-adapters/custom-rest";
 
 
 const { githubreleases: { host, namespace } } = config;
 
 
-export default RESTAdapter.extend( AdapterMixin, {
-	host,
-	namespace
-});
+export default class GithubReleasesAdapter extends CustomRESTAdapter {
+	host = host;
+	namespace = namespace;
+}

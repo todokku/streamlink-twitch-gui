@@ -1,9 +1,9 @@
 import TwitchAdapter from "data/models/twitch/adapter";
 
 
-export default TwitchAdapter.extend({
-	coalesceFindRequests: true,
-	findManyIdString: "login",
+export default class TwitchUserAdapter extends TwitchAdapter {
+	coalesceFindRequests = true;
+	findManyIdString = "login";
 
 	// use custom findRecord URL
 	findRecord( store, type, id, snapshot ) {
@@ -12,10 +12,10 @@ export default TwitchAdapter.extend({
 			login: id
 		};
 
-		return this.ajax( url, "GET", { data: data } );
-	},
+		return this.ajax( url, "GET", { data } );
+	}
 
 	urlForFindRecord( id, type ) {
 		return this._buildURL( type );
 	}
-});
+}
