@@ -1,43 +1,43 @@
-import { get, set } from "@ember/object";
-import { on } from "@ember/object/evented";
+import { set } from "@ember/object";
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
-import { fragment } from "ember-data-model-fragments/attributes";
+import { on } from "@ember-decorators/object";
+import { descriptor, fragment, name } from "utils/decorators";
 
 
-/**
- * @class Settings
- */
-export default Model.extend({
-	advanced: attr( "boolean", { defaultValue: false } ),
-	gui: fragment( "settingsGui", { defaultValue: {} } ),
-	streaming: fragment( "settingsStreaming", { defaultValue: {} } ),
-	streams: fragment( "settingsStreams", { defaultValue: {} } ),
-	chat: fragment( "settingsChat", { defaultValue: {} } ),
-	notification: fragment( "settingsNotification", { defaultValue: {} } ),
+@name( "Settings" )
+export default class Settings extends Model {
+	@attr( "boolean", { defaultValue: false } )
+	advanced;
+	/** @type {SettingsGui} */
+	@fragment( "settings-gui" )
+	gui;
+	/** @type {SettingsStreaming} */
+	@fragment( "settings-streaming" )
+	streaming;
+	/** @type {SettingsStreams} */
+	@fragment( "settings-streams" )
+	streams;
+	/** @type {SettingsChat} */
+	@fragment( "settings-chat" )
+	chat;
+	/** @type {SettingsNotification} */
+	@fragment( "settings-notification" )
+	notification;
 
 
-	init() {
-		this._super( ...arguments );
+	@descriptor({
+		enumerable: false,
+		writable: true,
+		value: false
+	})
+	hasStreamsLanguagesSelection;
 
-		/*
-		 * Define hasStreamsLanguagesSelection on the Settings model instead of the
-		 * SettingsStreamsLanguages fragment, because we need to listen to the ready and didUpdate
-		 * events of the Settings model.
-		 * Use an object property descriptor to set enumerable to false, so that it is not included
-		 * in the SettingsController's model object buffer.
-		 */
-		Object.defineProperty( this, "hasStreamsLanguagesSelection", {
-			enumerable: false,
-			writable: true,
-			value: false
-		});
-	},
-
-	_hasStreamsLanguagesSelection: on( "ready", "didUpdate", function() {
+	@on( "ready", "didUpdate" )
+	_hasStreamsLanguagesSelection() {
 		let ret = false;
 
-		const fragment = get( this, "streams.languages" );
+		const fragment = this.streams.languages;
 		if ( fragment ) {
 			const languages = fragment.toJSON();
 			const keys = Object.entries( languages );
@@ -54,8 +54,5 @@ export default Model.extend({
 		}
 
 		return set( this, "hasStreamsLanguagesSelection", ret );
-	})
-
-}).reopenClass({
-	toString() { return "Settings"; }
-});
+	}
+}

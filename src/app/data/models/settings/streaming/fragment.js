@@ -1,12 +1,12 @@
-import { get, computed } from "@ember/object";
+import { computed } from "@ember/object";
+import { equal } from "@ember/object/computed";
 import attr from "ember-data/attr";
 import Fragment from "ember-data-model-fragments/fragment";
-import { fragment } from "ember-data-model-fragments/attributes";
 import { streaming as streamingConfig } from "config";
+import { fragment } from "utils/decorators";
 import { isWin } from "utils/node/platform";
 
 
-const { equal } = computed;
 const { providers } = streamingConfig;
 const { MAX_SAFE_INTEGER: MAX } = Number;
 
@@ -19,41 +19,8 @@ export const ATTR_STREAMING_PLAYER_INPUT_HTTP = "http";
 export const ATTR_STREAMING_PLAYER_INPUT_PASSTHROUGH = "passthrough";
 
 
-export default Fragment.extend({
-	provider: attr( "string", { defaultValue: defaultProvider } ),
-	providers: fragment( "settingsStreamingProviders", { defaultValue: {} } ),
-
-	quality: attr( "string", { defaultValue: "source" } ),
-	qualities: fragment( "settingsStreamingQualities", { defaultValue: {} } ),
-	qualitiesOld: fragment( "settingsStreamingQualitiesOld", { defaultValue: {} } ),
-
-	player: attr( "string", { defaultValue: "default" } ),
-	players: fragment( "settingsStreamingPlayers", { defaultValue: {} } ),
-
-	oauth: attr( "boolean", { defaultValue: true } ),
-	disable_ads: attr( "boolean", { defaultValue: false } ),
-	player_input: attr( "string", { defaultValue: ATTR_STREAMING_PLAYER_INPUT_STDIN } ),
-	player_no_close: attr( "boolean", { defaultValue: false } ),
-	hls_live_edge: attr( "number", { defaultValue: 3, min: 1, max: 10 } ),
-	hls_segment_threads: attr( "number", { defaultValue: 1, min: 1, max: 10 } ),
-	retry_open: attr( "number", { defaultValue: 1, min: 1, max: MAX } ),
-	retry_streams: attr( "number", { defaultValue: 1, min: 0, max: MAX } ),
-
-	providerName: computed( "provider", function() {
-		const provider = get( this, "provider" );
-		return providers[ provider ][ "name" ];
-	}),
-
-	providerType: computed( "provider", function() {
-		const provider = get( this, "provider" );
-		return providers[ provider ][ "type" ];
-	}),
-
-	isStreamlink: equal( "providerType", "streamlink" )
-
-}).reopenClass({
-
-	playerInput: [
+export default class SettingsStreaming extends Fragment {
+	static playerInput = [
 		{
 			id: ATTR_STREAMING_PLAYER_INPUT_STDIN,
 			documentation: null
@@ -70,5 +37,57 @@ export default Fragment.extend({
 			id: ATTR_STREAMING_PLAYER_INPUT_PASSTHROUGH,
 			documentation: "--player-passthrough"
 		}
-	]
-});
+	];
+
+	@attr( "string", { defaultValue: defaultProvider } )
+	provider;
+	/** @type {SettingsStreamingProviders} */
+	@fragment( "settings-streaming-providers" )
+	providers;
+
+	@attr( "string", { defaultValue: "source" } )
+	quality;
+	/** @type {SettingsStreamingQualities} */
+	@fragment( "settings-streaming-qualities" )
+	qualities;
+	/** @type {SettingsStreamingQualitiesOld} */
+	@fragment( "settings-streaming-qualities-old" )
+	qualitiesOld;
+
+	@attr( "string", { defaultValue: "default" } )
+	player;
+	/** @type {SettingsStreamingPlayers} */
+	@fragment( "settings-streaming-players" )
+	players;
+
+	@attr( "boolean", { defaultValue: true } )
+	oauth;
+	@attr( "boolean", { defaultValue: false } )
+	disable_ads;
+	@attr( "string", { defaultValue: ATTR_STREAMING_PLAYER_INPUT_STDIN } )
+	player_input;
+	@attr( "boolean", { defaultValue: false } )
+	player_no_close;
+	@attr( "number", { defaultValue: 3, min: 1, max: 10 } )
+	hls_live_edge;
+	@attr( "number", { defaultValue: 1, min: 1, max: 10 } )
+	hls_segment_threads;
+	@attr( "number", { defaultValue: 1, min: 1, max: MAX } )
+	retry_open;
+	@attr( "number", { defaultValue: 1, min: 0, max: MAX } )
+	retry_streams;
+
+
+	@computed( "provider" )
+	get providerName() {
+		return providers[ this.provider ][ "name" ];
+	}
+
+	@computed( "provider" )
+	get providerType() {
+		return providers[ this.provider ][ "type" ];
+	}
+
+	@equal( "providerType", "streamlink" )
+	isStreamlink;
+}
