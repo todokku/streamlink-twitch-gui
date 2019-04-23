@@ -32,14 +32,9 @@ class HotkeyRegistry {
 }
 
 
-/**
- * @class HotkeyService
- */
-export default Service.extend({
-	/**
-	 * @type {HotkeyRegistry[]}
-	 */
-	registries: [],
+export default class HotkeyService extends Service {
+	/** @type {HotkeyRegistry[]} */
+	registries = [];
 
 	/**
 	 * Register hotkeys of a component
@@ -49,7 +44,7 @@ export default Service.extend({
 	register( context, hotkeys ) {
 		const registry = new HotkeyRegistry( context, hotkeys );
 		this.registries.unshift( registry );
-	},
+	}
 
 	/**
 	 * Remove all hotkeys registered by a component
@@ -59,7 +54,7 @@ export default Service.extend({
 		const registry = this.registries.findBy( "context", context );
 		if ( !registry ) { return; }
 		this.registries.removeObject( registry );
-	},
+	}
 
 	/**
 	 * Find a registered hotkey that matches and execute the action of the one added last
@@ -125,4 +120,4 @@ export default Service.extend({
 			event.stopImmediatePropagation();
 		}
 	}
-});
+}

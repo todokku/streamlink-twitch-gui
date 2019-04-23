@@ -1,30 +1,31 @@
 import { getOwner } from "@ember/application";
-import { get, setProperties, computed } from "@ember/object";
+import { setProperties } from "@ember/object";
+import { notEmpty } from "@ember/object/computed";
 import Evented from "@ember/object/evented";
 import Service from "@ember/service";
 
 
-const { notEmpty } = computed;
-
 const reModalName = /[A-Z]/g;
-
-function fnModalName( name ) {
-	name = name.toLowerCase();
-	return `-${name}`;
-}
+const fnModalName = name => `-${name.toLowerCase()}`;
 
 
-export default Service.extend( Evented, {
-	modal: null,
-	context: null,
+export default class ModalService extends Service.extend( Evented ) {
+	modal = null;
+	context = null;
 
-	isModalOpened: notEmpty( "modal" ),
+	@notEmpty( "modal" )
+	isModalOpened;
 
 
+	/**
+	 * @param {string} modal
+	 * @param {Object?} context
+	 * @param {Object?} data
+	 */
 	openModal( modal, context, data ) {
-		const opened = get( this, "modal" );
+		const opened = this.modal;
 		if ( opened ) {
-			this.trigger( "close", opened, get( this, "context" ) );
+			this.trigger( "close", opened, this.context );
 		}
 
 		const name = modal.replace( reModalName, fnModalName );
@@ -41,13 +42,17 @@ export default Service.extend( Evented, {
 
 		setProperties( this, { modal, context } );
 		this.trigger( "open", modal, context );
-	},
+	}
 
+	/**
+	 * @param {Object} context
+	 * @param {boolean?} force
+	 */
 	closeModal( context, force ) {
-		const _context = get( this, "context" );
+		const _context = this.context;
 
 		if ( force || _context === context && _context !== null ) {
-			this.trigger( "close", get( this, "modal" ), _context );
+			this.trigger( "close", this.modal, _context );
 
 			setProperties( this, {
 				modal: null,
@@ -55,4 +60,4 @@ export default Service.extend( Evented, {
 			});
 		}
 	}
-});
+}
