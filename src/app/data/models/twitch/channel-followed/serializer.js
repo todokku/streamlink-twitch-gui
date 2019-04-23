@@ -1,30 +1,28 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	modelNameFromPayloadKey() {
-		return "twitchChannelFollowed";
-	},
+export default class TwitchChannelFollowedSerializer extends TwitchSerializer {
+	modelNameFromPayloadKey = () => "twitch-channel-followed";
 
-	attrs: {
+	attrs = {
 		channel: { deserialize: "records" }
-	},
+	};
 
 	normalizeSingleResponse( store, primaryModelClass, payload, id, requestType ) {
 		// fix payload format
 		payload = {
-			twitchChannelFollowed: payload
+			[ this.modelNameFromPayloadKey() ]: payload
 		};
 
-		return this._super( store, primaryModelClass, payload, id, requestType );
-	},
+		return super.normalizeSingleResponse( store, primaryModelClass, payload, id, requestType );
+	}
 
 	normalize( modelClass, resourceHash, prop ) {
-		const foreignKey = this.store.serializerFor( "twitchChannel" ).primaryKey;
+		const foreignKey = this.store.serializerFor( "twitch-channel" ).primaryKey;
 
 		// get the id of the embedded TwitchChannel record and apply it here
 		resourceHash[ this.primaryKey ] = resourceHash.channel[ foreignKey ];
 
-		return this._super( modelClass, resourceHash, prop );
+		return super.normalize( modelClass, resourceHash, prop );
 	}
-});
+}

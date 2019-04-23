@@ -1,12 +1,10 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	primaryKey: "id",
+export default class TwitchUserSerializer extends TwitchSerializer {
+	primaryKey = "id";
 
-	modelNameFromPayloadKey() {
-		return "twitchUser";
-	},
+	modelNameFromPayloadKey = () => "twitch-user";
 
 	normalizeResponse( store, primaryModelClass, payload, id, requestType ) {
 		payload = {
@@ -17,6 +15,6 @@ export default TwitchSerializer.extend({
 			}) )
 		};
 
-		return this._super( store, primaryModelClass, payload, id, requestType );
+		return super.normalizeResponse( store, primaryModelClass, payload, id, requestType );
 	}
-});
+}

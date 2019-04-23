@@ -1,17 +1,15 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	primaryKey: "id",
+export default class TwitchStreamHostedSerializer extends TwitchSerializer {
+	primaryKey = "id";
 
-	modelNameFromPayloadKey() {
-		return "twitchStreamHosted";
-	},
+	modelNameFromPayloadKey = () => "twitch-stream-hosted";
 
 	normalize( modelClass, resourceHash, prop ) {
 		// get the target _id property and use it as key for the twitchStream relation
 		resourceHash.target = resourceHash.target._id;
 
-		return this._super( modelClass, resourceHash, prop );
+		return super.normalize( modelClass, resourceHash, prop );
 	}
-});
+}

@@ -1,19 +1,17 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	modelNameFromPayloadKey() {
-		return "twitchChannelPanel";
-	},
+export default class TwitchChannelPanelSerializer extends TwitchSerializer {
+	modelNameFromPayloadKey = () => "twitch-channel-panel";
 
 	normalizeResponse( store, primaryModelClass, payload, id, requestType ) {
 		// fix payload format
 		payload = {
-			twitchChannelPanel: payload
+			[ this.modelNameFromPayloadKey() ]: payload
 		};
 
-		return this._super( store, primaryModelClass, payload, id, requestType );
-	},
+		return super.normalizeResponse( store, primaryModelClass, payload, id, requestType );
+	}
 
 	normalize( modelClass, resourceHash, prop ) {
 		const data = resourceHash.data;
@@ -23,6 +21,6 @@ export default TwitchSerializer.extend({
 			resourceHash.link = data.link;
 		}
 
-		return this._super( modelClass, resourceHash, prop );
+		return super.normalize( modelClass, resourceHash, prop );
 	}
-});
+}

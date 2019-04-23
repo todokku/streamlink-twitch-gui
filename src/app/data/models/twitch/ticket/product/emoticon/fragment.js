@@ -4,15 +4,21 @@ import attr from "ember-data/attr";
 import Fragment from "ember-data-model-fragments/fragment";
 
 
-export default Fragment.extend({
-	regex: attr( "string" ),
-	regex_display: attr( "string" ),
-	state: attr( "string" ),
-	url: attr( "string" ),
+export default class TwitchTicketProductEmoticon extends Fragment {
+	@attr( "string" )
+	regex;
+	@attr( "string" )
+	regex_display;
+	@attr( "string" )
+	state;
+	@attr( "string" )
+	url;
 
-	isActive: equal( "state", "active" ),
+	@equal( "state", "active" )
+	isActive;
 
-	title: computed( "regex", "regex_display", function() {
+	@computed( "regex", "regex_display" )
+	get title() {
 		return this.regex_display || this.regex;
-	})
-});
+	}
+}

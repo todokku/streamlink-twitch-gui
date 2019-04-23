@@ -1,12 +1,10 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	primaryKey: "id",
+export default class TwitchTicketSerializer extends TwitchSerializer {
+	primaryKey = "id";
 
-	modelNameFromPayloadKey() {
-		return "twitchTicket";
-	},
+	modelNameFromPayloadKey = () => "twitch-ticket";
 
 	normalize( modelClass, resourceHash ) {
 		// copy the partner_login info from the product fragment to the ticket
@@ -14,6 +12,6 @@ export default TwitchSerializer.extend({
 		const product = resourceHash.product;
 		resourceHash[ "partner_login" ] = product && product[ "partner_login" ];
 
-		return this._super( ...arguments );
+		return super.normalize( ...arguments );
 	}
-});
+}

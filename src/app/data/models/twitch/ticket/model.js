@@ -1,28 +1,37 @@
 import { alias } from "@ember/object/computed";
-import { get, computed } from "@ember/object";
+import { computed } from "@ember/object";
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
 import { belongsTo } from "ember-data/relationships";
-import { fragment } from "ember-data-model-fragments/attributes";
 import Moment from "moment";
+import { fragment, name } from "utils/decorators";
 
 
-export default Model.extend({
-	/** type {TwitchTicketProduct} */
-	product: fragment( "twitch-ticket-product", { defaultValue: {} } ),
-	/** type {TwitchTicketPurchaseProfile} */
-	purchase_profile: fragment( "twitch-ticket-purchase-profile", { defaultValue: {} } ),
+@name( "api/users/:user_name/tickets" )
+export default class TwitchTicket extends Model {
+	/** @type {TwitchTicketProduct} */
+	@fragment( "twitch-ticket-product" )
+	product;
+	/** @type {TwitchTicketPurchaseProfile} */
+	@fragment( "twitch-ticket-purchase-profile" )
+	purchase_profile;
 
-	/** @type ComputedProperty<PromiseProxy<TwitchUser>> */
-	partner_login: belongsTo( "twitch-user", { async: true } ),
+	/** @type {PromiseObject<TwitchUser>} */
+	@belongsTo( "twitch-user", { async: true } )
+	partner_login;
 
-	access_end: attr( "date" ),
-	access_start: attr( "date" ),
-	expired: attr( "boolean" ),
-	is_gift: attr( "boolean" ),
+	@attr( "date" )
+	access_end;
+	@attr( "date" )
+	access_start;
+	@attr( "boolean" )
+	expired;
+	@attr( "boolean" )
+	is_gift;
 
-	/** @type ComputedProperty<PromiseProxy<TwitchChannel>> */
-	channel: alias( "partner_login.channel" ),
+	/** @type {PromiseObject<TwitchChannel>} */
+	@alias( "partner_login.channel" )
+	channel;
 
 
 	// load the chained PromiseProxy
@@ -33,23 +42,24 @@ export default Model.extend({
 		await channel.promise;
 
 		return channel.content;
-	},
+	}
 
 
 	get hasEnded() {
-		const access_end = get( this, "access_end" );
+		const access_end = this.access_end;
 
 		return access_end && new Date() > access_end;
-	},
+	}
 
 	get ends() {
-		const access_end = get( this, "access_end" );
+		const access_end = this.access_end;
 
 		return new Moment().to( access_end );
-	},
+	}
 
 
-	subbedFor: computed( "access_start", "purchase_profile.consecutive_months", function() {
+	@computed( "access_start", "purchase_profile.consecutive_months" )
+	get subbedFor() {
 		const purchase_profile = this.purchase_profile;
 		if ( purchase_profile ) {
 			const months = purchase_profile.consecutive_months;
@@ -66,8 +76,5 @@ export default Model.extend({
 		}
 
 		return 1;
-	})
-
-}).reopenClass({
-	toString() { return "api/users/:user_name/tickets"; }
-});
+	}
+}

@@ -1,17 +1,15 @@
 import TwitchSerializer from "data/models/twitch/serializer";
 
 
-export default TwitchSerializer.extend({
-	modelNameFromPayloadKey() {
-		return "twitchGameFollowedLive";
-	},
+export default class TwitchGameFollowedLiveSerializer extends TwitchSerializer {
+	modelNameFromPayloadKey = () => "twitch-game-followed-live";
 
-	attrs: {
+	attrs = {
 		game: { deserialize: "records" }
-	},
+	};
 
 	normalize( modelClass, resourceHash, prop ) {
-		const foreignKey = this.store.serializerFor( "twitchGame" ).primaryKey;
+		const foreignKey = this.store.serializerFor( "twitch-game" ).primaryKey;
 
 		// fix payload format
 		resourceHash.game = { game: resourceHash.game };
@@ -19,6 +17,6 @@ export default TwitchSerializer.extend({
 		// get the id of the embedded TwitchGame record and apply it here
 		resourceHash[ this.primaryKey ] = resourceHash.game.game[ foreignKey ];
 
-		return this._super( modelClass, resourceHash, prop );
+		return super.normalize( modelClass, resourceHash, prop );
 	}
-});
+}

@@ -1,10 +1,11 @@
 import Model from "ember-data/model";
 import { belongsTo } from "ember-data/relationships";
+import { name } from "utils/decorators";
 
 
-export default Model.extend({
-	game: belongsTo( "twitchGame", { async: false } )
-
-}).reopenClass({
-	toString() { return "api/users/:user_name/follows/games"; }
-});
+@name( "api/users/:user_name/follows/games" )
+export default class TwitchGameFollowed extends Model {
+	/** @type {TwitchGame} */
+	@belongsTo( "twitch-game", { async: false } )
+	game;
+}

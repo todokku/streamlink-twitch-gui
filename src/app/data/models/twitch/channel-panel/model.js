@@ -1,15 +1,20 @@
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
+import { name } from "utils/decorators";
 
 
-export default Model.extend({
-	display_order: attr( "number" ),
-	html_description: attr( "string" ),
-	image: attr( "string" ),
-	kind: attr( "string" ),
-	link: attr( "string" ),
-	title: attr( "string" )
-
-}).reopenClass({
-	toString() { return "api/channels/:channel/panels"; }
-});
+@name( "api/channels/:channel/panels" )
+export default class TwitchChannelPanel extends Model {
+	@attr( "number" )
+	display_order;
+	@attr( "string" )
+	html_description;
+	@attr( "string" )
+	image;
+	@attr( "string" )
+	kind;
+	@attr( "string" )
+	link;
+	@attr( "string" )
+	title;
+}
