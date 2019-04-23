@@ -1,25 +1,40 @@
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
+import { name } from "utils/decorators";
 
 
-export default Model.extend({
-	assets: attr(),
-	assets_url: attr(),
-	author: attr(),
-	body: attr(),
-	created_at: attr(),
-	draft: attr( "boolean" ),
-	html_url: attr( "string" ),
-	name: attr(),
-	prerelease: attr(),
-	published_at: attr(),
-	tag_name: attr( "string" ),
-	tarball_url: attr(),
-	target_commitish: attr(),
-	upload_url: attr(),
-	url: attr(),
-	zipball_url: attr()
-
-}).reopenClass({
-	toString() { return "releases"; }
-});
+@name( "releases" )
+export default class GithubRelease extends Model {
+	@attr
+	assets;
+	@attr
+	assets_url;
+	@attr
+	author;
+	@attr
+	body;
+	@attr
+	created_at;
+	@attr( "boolean" )
+	draft;
+	@attr( "string" )
+	html_url;
+	@attr
+	name;
+	@attr
+	prerelease;
+	@attr
+	published_at;
+	@attr( "string" )
+	tag_name;
+	@attr
+	tarball_url;
+	@attr
+	target_commitish;
+	@attr
+	upload_url;
+	@attr
+	url;
+	@attr
+	zipball_url;
+}
