@@ -10,9 +10,9 @@ const {
 } = SettingsStreams;
 
 
-export default Controller.extend({
-	contentStreamsName,
-	contentStreamsInfo,
-	contentStreamsClick,
-	isDarwin
-});
+export default class SettingsListsController extends Controller {
+	contentStreamsName = contentStreamsName;
+	contentStreamsInfo = contentStreamsInfo;
+	contentStreamsClick = contentStreamsClick;
+	isDarwin = isDarwin;
+}
