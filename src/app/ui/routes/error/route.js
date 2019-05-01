@@ -1,3 +1,4 @@
+/* globals DEBUG */
 import { get, set } from "@ember/object";
 import Route from "@ember/routing/route";
 import { isNone } from "@ember/utils";
@@ -21,7 +22,7 @@ const duplicates = {
 };
 
 
-export default Route.extend({
+export default class ErrorRoute extends Route {
 	/**
 	 * Do all the error display stuff here instead of using an error controller.
 	 * A route for errors is needed anyway.
@@ -29,7 +30,7 @@ export default Route.extend({
 	 * @param {Error} error
 	 */
 	setupController( controller, error ) {
-		this._super( controller );
+		super.setupController( controller );
 
 		error = error || new Error( "Unknown error" );
 
@@ -86,4 +87,4 @@ export default Route.extend({
 			});
 		set( controller, "model", model );
 	}
-});
+}

@@ -1,10 +1,11 @@
+import { action } from "@ember/object";
 import Route from "@ember/routing/route";
 import { inject as service } from "@ember/service";
 
 
-export default Route.extend({
+export default class IndexRoute extends Route {
 	/** @type {RouterService} */
-	router: service(),
+	@service router;
 
 	beforeModel( transition ) {
 		// access to this route is restricted
@@ -12,11 +13,10 @@ export default Route.extend({
 		if ( transition.sequence > 0 ) {
 			transition.abort();
 		}
-	},
-
-	actions: {
-		didTransition() {
-			this.router.homepage( true );
-		}
 	}
-});
+
+	@action
+	didTransition() {
+		this.router.homepage( true );
+	}
+}

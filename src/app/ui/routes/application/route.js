@@ -1,12 +1,13 @@
 import Route from "@ember/routing/route";
 import { inject as service } from "@ember/service";
+import { on } from "@ember-decorators/object";
 
 
-export default Route.extend({
-	versioncheck: service(),
+export default class ApplicationRoute extends Route {
+	@service versioncheck;
 
-	init() {
-		this._super( ...arguments );
+	@on( "init" )
+	_checkVersion() {
 		this.versioncheck.check();
 	}
-});
+}
