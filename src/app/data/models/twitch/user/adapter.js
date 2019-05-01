@@ -5,7 +5,6 @@ export default class TwitchUserAdapter extends TwitchAdapter {
 	coalesceFindRequests = true;
 	findManyIdString = "login";
 
-	// use custom findRecord URL
 	findRecord( store, type, id, snapshot ) {
 		const url = this.buildURL( type, null, snapshot, "findRecord" );
 		const data = {
@@ -15,7 +14,20 @@ export default class TwitchUserAdapter extends TwitchAdapter {
 		return this.ajax( url, "GET", { data } );
 	}
 
+	queryRecord( store, type, query ) {
+		const url = this.buildURL( type, null, null, "queryRecord", query );
+		const data = {
+			login: query
+		};
+
+		return this.ajax( url, "GET", { data } );
+	}
+
 	urlForFindRecord( id, type ) {
+		return this._buildURL( type );
+	}
+
+	urlForQueryRecord( query, type ) {
 		return this._buildURL( type );
 	}
 }

@@ -2,7 +2,7 @@ import { module, test } from "qunit";
 import { buildOwner, runDestroy } from "test-utils";
 import { setupStore, adapterRequest } from "store-utils";
 import { FakeI18nService } from "i18n-utils";
-import { get } from "@ember/object";
+
 import Service from "@ember/service";
 
 import User from "data/models/twitch/user/model";
@@ -20,19 +20,15 @@ import TwitchChannelFixtures from "fixtures/data/models/twitch/channel.json";
 import TwitchStreamFixtures from "fixtures/data/models/twitch/stream.json";
 
 
-const TwitchImage = imageInjector({
-	config: {
-		vars: {}
-	}
-})[ "default" ];
+module( "data/models/twitch/user", function( hooks ) {
+	const { default: TwitchImage } = imageInjector({
+		config: {
+			vars: {}
+		}
+	});
 
-
-let owner, env;
-
-
-module( "data/models/twitch/user", {
-	beforeEach() {
-		owner = buildOwner();
+	hooks.beforeEach(function() {
+		const owner = this.owner = buildOwner();
 
 		owner.register( "service:auth", Service.extend() );
 		owner.register( "service:i18n", FakeI18nService );
@@ -49,76 +45,72 @@ module( "data/models/twitch/user", {
 		owner.register( "model:twitch-image", TwitchImage );
 		owner.register( "serializer:twitch-image", ImageSerializer );
 
-		env = setupStore( owner );
-	},
+		this.env = setupStore( owner );
+	});
 
-	afterEach() {
-		runDestroy( owner );
-		owner = env = null;
-	}
-});
+	hooks.afterEach(function() {
+		runDestroy( this.owner );
+		this.owner = this.env = null;
+	});
 
 
-test( "Adapter and Serializer", assert => {
+	test( "Adapter and Serializer", async function( assert ) {
+		this.env.store.adapterFor( "twitch-user" ).ajax = ( url, method, query ) =>
+			adapterRequest( assert, TwitchUserFixtures[ "by-id" ], url, method, query );
 
-	env.store.adapterFor( "twitchUser" ).ajax = ( url, method, query ) =>
-		adapterRequest( assert, TwitchUserFixtures[ "by-id" ], url, method, query );
+		this.env.store.adapterFor( "twitch-channel" ).ajax = ( url, method, query ) =>
+			adapterRequest( assert, TwitchChannelFixtures[ "by-id" ], url, method, query );
 
-	env.store.adapterFor( "twitchChannel" ).ajax = ( url, method, query ) =>
-		adapterRequest( assert, TwitchChannelFixtures[ "by-id" ], url, method, query );
+		this.env.store.adapterFor( "twitch-stream" ).ajax = ( url, method, query ) =>
+			adapterRequest( assert, TwitchStreamFixtures[ "single" ], url, method, query );
 
-	env.store.adapterFor( "twitchStream" ).ajax = ( url, method, query ) =>
-		adapterRequest( assert, TwitchStreamFixtures[ "single" ], url, method, query );
+		/** @type {TwitchUser} */
+		const record = await this.env.store.queryRecord( "twitch-user", "foo" );
 
-	return env.store.findRecord( "twitchUser", "foo" )
-		.then( record => {
-			assert.deepEqual(
-				record.toJSON({ includeId: true }),
-				{
-					id: "foo",
-					channel: "1",
-					stream: "1"
-				},
-				"Records have the correct id and attributes"
-			);
+		assert.deepEqual(
+			record.toJSON({ includeId: true }),
+			{
+				id: "foo",
+				channel: "1",
+				stream: "1"
+			},
+			"Records have the correct id and attributes"
+		);
 
-			assert.ok(
-				!env.store.hasRecordForId( "twitchChannel", 1 ),
-				"Does not have a channel record registered in the data store"
-			);
+		assert.ok(
+			!this.env.store.hasRecordForId( "twitch-channel", 1 ),
+			"Does not have a channel record registered in the data store"
+		);
 
-			assert.ok(
-				!env.store.hasRecordForId( "twitchStream", 1 ),
-				"Does not have a stream record registered in the data store"
-			);
+		assert.ok(
+			!this.env.store.hasRecordForId( "twitch-stream", 1 ),
+			"Does not have a stream record registered in the data store"
+		);
 
-			assert.ok(
-				!env.store.hasRecordForId( "twitchImage", "stream/preview/1" ),
-				"Does not have an image record registered in the data store"
-			);
+		assert.ok(
+			!this.env.store.hasRecordForId( "twitch-image", "stream/preview/1" ),
+			"Does not have an image record registered in the data store"
+		);
 
-			return get( record, "channel" )
-				.then( () => {
-					assert.ok(
-						env.store.hasRecordForId( "twitchChannel", "1" ),
-						"Store does have a channel record registered after accessing the channel"
-					);
-				})
-				.then( () => get( record, "stream" ) )
-				.then( () => {
-					assert.ok(
-						env.store.hasRecordForId( "twitchStream", "1" ),
-						"Store does have a stream record registered after accessing the stream"
-					);
-					assert.ok(
-						env.store.hasRecordForId( "twitchChannel", "1" ),
-						"Store does have a channel record registered after accessing the channel"
-					);
-					assert.ok(
-						env.store.hasRecordForId( "twitchImage", "stream/preview/1" ),
-						"Store does have an image record registered after accessing the stream"
-					);
-				});
-		});
+		await record.loadChannel();
+		assert.ok(
+			this.env.store.hasRecordForId( "twitch-channel", "1" ),
+			"Store does have a channel record registered after accessing the channel"
+		);
+
+		await record.loadStream();
+		assert.ok(
+			this.env.store.hasRecordForId( "twitch-stream", "1" ),
+			"Store does have a stream record registered after accessing the stream"
+		);
+		assert.ok(
+			this.env.store.hasRecordForId( "twitch-channel", "1" ),
+			"Store does have a channel record registered after accessing the channel"
+		);
+		assert.ok(
+			this.env.store.hasRecordForId( "twitch-image", "stream/preview/1" ),
+			"Store does have an image record registered after accessing the stream"
+		);
+	});
 
 });

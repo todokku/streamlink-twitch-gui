@@ -38,10 +38,8 @@ export default class TwitchTicket extends Model {
 	async loadChannel() {
 		const user = this.partner_login;
 		await user.promise;
-		const channel = user.content.channel;
-		await channel.promise;
 
-		return channel.content;
+		return await user.content.loadChannel();
 	}
 
 
