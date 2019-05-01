@@ -3,13 +3,14 @@ import InfiniteScrollOffsetMixin from "ui/routes/-mixins/routes/infinite-scroll/
 import preload from "utils/preload";
 
 
-export default UserIndexRoute.extend( InfiniteScrollOffsetMixin, {
-	itemSelector: ".subscription-item-component",
-	modelName: "twitchTicket",
+export default class UserSubscriptionsRoute
+extends UserIndexRoute.extend( InfiniteScrollOffsetMixin ) {
+	itemSelector = ".subscription-item-component";
+	modelName = "twitch-ticket";
 
 	async model() {
 		// request the subscriptions by offset
-		let tickets = await this._super({ unended: true });
+		let tickets = await super.model({ unended: true });
 
 		// filter out unwanted ticket types (eg. twitch turbo)
 		tickets = this.filterFetchedContent( tickets, "product.ticket_type", "chansub" );
@@ -40,4 +41,4 @@ export default UserIndexRoute.extend( InfiniteScrollOffsetMixin, {
 
 		return tickets;
 	}
-});
+}

@@ -1,23 +1,23 @@
-import { get } from "@ember/object";
 import UserIndexRoute from "../index/route";
 import InfiniteScrollOffsetMixin from "ui/routes/-mixins/routes/infinite-scroll/offset";
 import RefreshRouteMixin from "ui/routes/-mixins/routes/refresh";
 import preload from "utils/preload";
 
 
-export default UserIndexRoute.extend( InfiniteScrollOffsetMixin, RefreshRouteMixin, {
-	itemSelector: ".stream-item-component",
-	modelName: "twitchStreamHosted",
+export default class UserHostedStreamsRoute
+extends UserIndexRoute.extend( InfiniteScrollOffsetMixin, RefreshRouteMixin ) {
+	itemSelector = ".stream-item-component";
+	modelName = "twitch-stream-hosted";
 
 	async model() {
-		const records = await this._super();
+		const records = await super.model();
 		await Promise.all( records
 			.mapBy( "target" )
 			.uniqBy( "id" )
-			.map( async streamPromise => {
+			.map( /** @param {PromiseObject<TwitchStream>} streamPromise */ async streamPromise => {
 				await streamPromise.promise;
 				const stream = streamPromise.content;
-				if ( get( stream, "isLoading" ) ) {
+				if ( stream.isLoading ) {
 					await streamPromise;
 				} else {
 					await stream.reload();
@@ -28,4 +28,4 @@ export default UserIndexRoute.extend( InfiniteScrollOffsetMixin, RefreshRouteMix
 
 		return records;
 	}
-});
+}

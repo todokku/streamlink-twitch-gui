@@ -1,38 +1,50 @@
 import Controller from "@ember/controller";
-import { get, set, computed } from "@ember/object";
+import { set, computed, action } from "@ember/object";
 import { inject as service } from "@ember/service";
 
 
-export default Controller.extend({
-	auth: service(),
-	notification: service(),
+export default class UserIndexController extends Controller {
+	/** @type {AuthService} */
+	@service auth;
+	/** @type {NotificationService} */
+	@service notification;
 	/** @type {NwjsService} */
-	nwjs: service(),
-	settings: service(),
+	@service nwjs;
+	/** @type {RouterService} */
+	@service router;
+	/** @type {SettingsService} */
+	@service settings;
 
-	scope: computed( "auth.session.scope", function() {
-		return get( this, "auth.session.scope" ).split( "+" ).join( ", " );
-	}),
+	@computed( "auth.session.scope" )
+	get scope() {
+		/** @type {Auth} */
+		const session = this.auth.session;
 
-	showTokenForm: false,
+		return session
+			? session.scope.split( "+" ).join( ", " )
+			: "";
+	}
 
-	actions: {
-		signout() {
-			get( this, "auth" ).signout()
-				.then( () => this.transitionToRoute( "user.auth" ) );
-		},
+	isTokenFormVisible = false;
 
-		async copyToken( success, failure ) {
-			try {
-				this.nwjs.clipboard.set( this.auth.session.access_token );
-				await success();
-			} catch ( err ) {
-				await failure( err );
-			}
-		},
+	@action
+	async signout() {
+		await this.auth.signout();
+		this.router.transitionTo( "user.auth" );
+	}
 
-		showTokenForm() {
-			set( this, "showTokenForm", true );
+	@action
+	async copyToken( success, failure ) {
+		try {
+			this.nwjs.clipboard.set( this.auth.session.access_token );
+			await success();
+		} catch ( err ) {
+			await failure( err );
 		}
 	}
-});
+
+	@action
+	showTokenForm() {
+		set( this, "isTokenFormVisible", true );
+	}
+}
