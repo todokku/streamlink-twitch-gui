@@ -1,31 +1,33 @@
 import Controller from "@ember/controller";
-import { get, computed } from "@ember/object";
+import { computed } from "@ember/object";
 import { alias } from "@ember/object/computed";
 import { inject as service } from "@ember/service";
 
 
-const day = 24 * 3600 * 1000;
+export default class UserIndexController extends Controller {
+	/** @type {I18nService} */
+	@service i18n;
 
+	@alias( "model.stream" )
+	stream;
+	@alias( "model.channel" )
+	channel;
+	@alias( "model.panels" )
+	panels;
 
-export default Controller.extend({
-	i18n: service(),
+	@computed( "channel.created_at" )
+	get age() {
+		const createdAt = this.channel.created_at;
 
-	stream: alias( "model.stream" ),
-	channel: alias( "model.channel" ),
-	panels: alias( "model.panels" ),
+		return ( new Date() - createdAt ) / ( 24 * 3600 * 1000 );
+	}
 
-	age: computed( "channel.created_at", function() {
-		const createdAt = get( this, "channel.created_at" );
+	@computed( "i18n.locale", "channel.broadcaster_language" )
+	get language() {
+		const blang = this.channel.broadcaster_language;
 
-		return ( new Date() - createdAt ) / day;
-	}),
-
-	language: computed( "i18n.locale", "channel.broadcaster_language", function() {
-		const i18n = get( this, "i18n" );
-		const blang = get( this, "channel.broadcaster_language" );
-
-		return blang && i18n.exists( `languages.${blang}` )
-			? i18n.t( `languages.${blang}` ).toString()
+		return blang && this.i18n.exists( `languages.${blang}` )
+			? this.i18n.t( `languages.${blang}` ).toString()
 			: "";
-	})
-});
+	}
+}
