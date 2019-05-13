@@ -1,26 +1,26 @@
 import Component from "@ember/component";
-import { get, set } from "@ember/object";
+import { set } from "@ember/object";
 import { next, scheduleOnce } from "@ember/runloop";
-import layout from "./template.hbs";
+import { layout } from "@ember-decorators/component";
+import { on } from "@ember-decorators/object";
+import template from "./template.hbs";
 import "./styles.less";
 
 
-export default Component.extend({
-	layout,
+@layout( template )
+export default class PreviewImageComponent extends Component {
+	error = false;
 
-	error: false,
+	onLoad() {}
+	onError() {}
 
-	onLoad() {},
-	onError() {},
-
-	didInsertElement() {
-		this._super( ...arguments );
-
+	@on( "didInsertElement" )
+	onDidInsertElement() {
 		const setError = () => scheduleOnce( "afterRender", () => {
 			set( this, "error", true );
 		});
 
-		if ( !get( this, "src" ) ) {
+		if ( !this.src ) {
 			return setError();
 		}
 
@@ -45,4 +45,4 @@ export default Component.extend({
 		img.addEventListener( "error", onError, false );
 		img.addEventListener( "load",  onLoad,  false );
 	}
-});
+}

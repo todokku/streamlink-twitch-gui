@@ -1,39 +1,42 @@
 import Component from "@ember/component";
-import { get, computed } from "@ember/object";
+import { computed } from "@ember/object";
 import { inject as service } from "@ember/service";
-import { langs } from "config";
+import { attribute, className, classNames, tagName } from "@ember-decorators/component";
+import { langs as langsConfig } from "config";
 import "./styles.less";
 
 
-export default Component.extend({
-	i18n: service(),
+@tagName( "i" )
+@classNames( "flag-icon-component" )
+export default class FlagIconComponent extends Component {
+	/** @type {I18nService} */
+	@service i18n;
 
-	tagName: "i",
-	classNames: [ "flag-icon-component" ],
-	classNameBindings: [ "flag", "withCursor::no-cursor" ],
-	attributeBindings: [ "title" ],
+	lang;
+	type;
+	withTitle = true;
 
-	lang: null,
-	type: null,
-	withTitle : true,
-	withCursor: true,
+	@className( "", "no-cursor" )
+	withCursor = true;
 
-	flag: computed( "lang", function() {
-		const lang = get( this, "lang" );
-		const code = langs[ lang ];
+	@className
+	@computed( "lang" )
+	get flag() {
+		const code = langsConfig[ this.lang ];
 
 		return code
 			? `flag-${code.flag}`
 			: null;
-	}),
+	}
 
-	title: computed( "withTitle", "lang", function() {
-		if ( !get( this, "withTitle" ) ) { return ""; }
+	@attribute
+	@computed( "withTitle", "lang" )
+	get title() {
+		if ( !this.withTitle ) { return ""; }
 
-		const i18n = get( this, "i18n" );
-		const type = get( this, "type" );
-		const langId = get( this, "lang" );
-		const path = `languages.${langId}`;
+		const i18n = this.i18n;
+		const type = this.type;
+		const path = `languages.${this.lang}`;
 
 		if ( type !== "channel" && type !== "broadcaster" || !i18n.exists( path ) ) {
 			return "";
@@ -42,5 +45,5 @@ export default Component.extend({
 		return i18n.t( `components.flag-icon.${type}`, {
 			lang: i18n.t( path ).toString()
 		}).toString();
-	})
-});
+	}
+}
