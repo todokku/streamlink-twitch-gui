@@ -1,4 +1,3 @@
-import { get } from "@ember/object";
 import { inject as service } from "@ember/service";
 import { helper as FromNowHelper } from "./-from-now";
 
@@ -9,22 +8,22 @@ const hour   = 60 * minute;
 const day    = 24 * hour;
 
 
-export const helper = FromNowHelper.extend({
-	i18n: service(),
+export const helper = class HoursFromNowHelper extends FromNowHelper {
+	/** @type {I18nService} */
+	@service i18n;
 
 	_compute( params ) {
-		const i18n = get( this, "i18n" );
 		const diff = Date.now() - params[0];
 
 		if ( diff < minute / 2 ) {
-			return i18n.t( "helpers.hours-from-now.now" ).toString();
+			return this.i18n.t( "helpers.hours-from-now.now" ).toString();
 
 		} else if ( diff < hour ) {
 			const minutes = diff < minute
 				? 1
 				: Math.floor( diff / minute );
 
-			return i18n.t( "helpers.hours-from-now.minutes", {
+			return this.i18n.t( "helpers.hours-from-now.minutes", {
 				minutes: minutes < 10
 					? `0${minutes}`
 					: minutes.toFixed( 0 )
@@ -34,13 +33,13 @@ export const helper = FromNowHelper.extend({
 			const remaining = diff % hour;
 
 			if ( remaining > minute ) {
-				return i18n.t( "helpers.hours-from-now.hours.extended", {
+				return this.i18n.t( "helpers.hours-from-now.hours.extended", {
 					hours: Math.floor( diff / hour ).toFixed( 0 ),
 					minutes: Math.floor( remaining / minute ).toFixed( 0 )
 				}).toString();
 
 			} else {
-				return i18n.t( "helpers.hours-from-now.hours.simple", {
+				return this.i18n.t( "helpers.hours-from-now.hours.simple", {
 					hours: Math.floor( diff / hour ).toFixed( 0 )
 				}).toString();
 			}
@@ -49,16 +48,16 @@ export const helper = FromNowHelper.extend({
 			const remaining = diff % day;
 
 			if ( remaining > hour ) {
-				return i18n.t( "helpers.hours-from-now.days.extended", {
+				return this.i18n.t( "helpers.hours-from-now.days.extended", {
 					days: Math.floor( diff / day ).toFixed( 0 ),
 					hours: Math.floor( remaining / hour ).toFixed( 0 )
 				}).toString();
 
 			} else {
-				return i18n.t( "helpers.hours-from-now.days.simple", {
+				return this.i18n.t( "helpers.hours-from-now.days.simple", {
 					days: Math.floor( diff / day ).toFixed( 0 )
 				}).toString();
 			}
 		}
 	}
-});
+};
