@@ -1,30 +1,32 @@
-import { get } from "@ember/object";
+import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
+import { classNames, layout, tagName } from "@ember-decorators/component";
 import EmbeddedHtmlLinksComponent from "ui/components/link/embedded-html-links/component";
-import layout from "./template.hbs";
+import template from "./template.hbs";
 import "./styles.less";
 
 
-export default EmbeddedHtmlLinksComponent.extend({
+@layout( template )
+@tagName( "li" )
+@classNames( "channel-panel-item-component" )
+export default class ChannelPanelItemComponent extends EmbeddedHtmlLinksComponent {
 	/** @type {NwjsService} */
-	nwjs: service(),
+	@service nwjs;
 	/** @type {RouterService} */
-	router: service(),
+	@service router;
 
-	layout,
-
-	tagName: "li",
-	classNames: [ "channel-panel-item-component" ],
-
+	/**
+	 * @param {MouseEvent} event
+	 */
 	contextMenu( event ) {
 		const target = event.target;
 		if ( target.tagName === "IMG" && target.classList.contains( "withLink" ) ) {
-			return this.linkContentMenu( event, get( this, "panel.link" ) );
+			return this.linkContentMenu( event, this.panel.link );
 		}
 		if ( target.tagName === "A" && target.classList.contains( "external-link" ) ) {
 			return this.linkContentMenu( event, target.href );
 		}
-	},
+	}
 
 	linkContentMenu( event, url ) {
 		this.nwjs.contextMenu( event, [
@@ -37,11 +39,10 @@ export default EmbeddedHtmlLinksComponent.extend({
 				click: () => this.nwjs.clipboard.set( url )
 			}
 		]);
-	},
-
-	actions: {
-		openBrowser( url ) {
-			this.router.openBrowserOrTransitionToChannel( url );
-		}
 	}
-});
+
+	@action
+	openBrowser( url ) {
+		this.router.openBrowserOrTransitionToChannel( url );
+	}
+}

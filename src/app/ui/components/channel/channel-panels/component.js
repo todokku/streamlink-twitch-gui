@@ -1,23 +1,22 @@
 import Component from "@ember/component";
-import { on } from "@ember/object/evented";
+import { action } from "@ember/object";
 import { scheduleOnce } from "@ember/runloop";
 import { inject as service } from "@ember/service";
+import { classNames, layout, tagName } from "@ember-decorators/component";
+import { on } from "@ember-decorators/object";
 import Masonry from "masonry-layout";
-import layout from "./template.hbs";
+import template from "./template.hbs";
 
 
-export default Component.extend({
+@layout( template )
+@tagName( "section" )
+@classNames( "channel-panels-component" )
+export default class ChannelPanelsComponent extends Component {
 	/** @type {RouterService} */
-	router: service(),
+	@service router;
 
-	layout,
-
-	tagName: "section",
-	classNames: [
-		"channel-panels-component"
-	],
-
-	_masonry: on( "didInsertElement", function() {
+	@on( "didInsertElement" )
+	_masonry() {
 		const container = this.element.querySelector( "ul" );
 		scheduleOnce( "afterRender", function() {
 			return new Masonry( container, {
@@ -26,11 +25,10 @@ export default Component.extend({
 				transitionDuration: 0
 			});
 		});
-	}),
-
-	actions: {
-		openBrowser( url ) {
-			this.router.openBrowserOrTransitionToChannel( url );
-		}
 	}
-});
+
+	@action
+	openBrowser( url ) {
+		this.router.openBrowserOrTransitionToChannel( url );
+	}
+}
