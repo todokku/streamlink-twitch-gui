@@ -1,10 +1,11 @@
 import Component from "@ember/component";
+import { layout } from "@ember-decorators/component";
 import { inject as service } from "@ember/service";
-import layout from "./template.hbs";
+import template from "./template.hbs";
 
 
-export default Component.extend({
-	modal: service(),
-
-	layout
-});
+@layout( template )
+export default class ModalServiceComponent extends Component {
+	/** @type {ModalService} */
+	@service modal;
+}

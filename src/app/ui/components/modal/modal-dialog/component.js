@@ -1,32 +1,35 @@
 import Component from "@ember/component";
-import { get } from "@ember/object";
+import { action } from "@ember/object";
 import { inject as service } from "@ember/service";
+import { className, classNames, layout, tagName } from "@ember-decorators/component";
+import { on } from "@ember-decorators/object";
 import HotkeyMixin from "ui/components/-mixins/hotkey";
-import layout from "./template.hbs";
+import template from "./template.hbs";
 import "./styles.less";
 
 
-export default Component.extend( HotkeyMixin, {
-	modal: service(),
+@layout( template )
+@tagName( "section" )
+@classNames( "modal-dialog-component" )
+export default class ModalDialogComponent extends Component.extend( HotkeyMixin ) {
+	/** @type {ModalService} */
+	@service modal;
 
-	layout,
+	@className
+	class = "";
 
-	tagName: "section",
-	classNameBindings: [ ":modal-dialog-component", "class" ],
-
-	"class": "",
-
-	hotkeys: [
+	hotkeys = [
 		{
 			key: [ "Escape", "Backspace" ],
 			action: "close"
 		}
-	],
+	];
 
 	/*
 	 * This will be called synchronously, so we need to copy the element and animate it instead
 	 */
-	willDestroyElement() {
+	@on( "willDestroyElement" )
+	_fadeOut() {
 		const element = this.element;
 		let clone = element.cloneNode( true );
 		clone.classList.add( "fadeOut" );
@@ -35,12 +38,11 @@ export default Component.extend( HotkeyMixin, {
 			clone.parentNode.removeChild( clone );
 			clone = null;
 		}, { once: true } );
-	},
-
-
-	actions: {
-		close() {
-			get( this, "modal" ).closeModal( null, true );
-		}
 	}
-});
+
+
+	@action
+	close() {
+		this.modal.closeModal( null, true );
+	}
+}
