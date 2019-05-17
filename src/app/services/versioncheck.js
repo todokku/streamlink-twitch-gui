@@ -1,130 +1,112 @@
-import { get, set } from "@ember/object";
+import { set } from "@ember/object";
 import { default as Service, inject as service } from "@ember/service";
 import semver from "semver";
-import { update } from "config";
+import { update as updateConfig } from "config";
 import { manifest } from "nwjs/App";
 import { argv, ARG_VERSIONCHECK } from "nwjs/argv";
 
 
-const { "check-again": checkAgain } = update;
+const { "check-again": checkAgain } = updateConfig;
 const { version } = manifest;
 
 
-export default Service.extend({
-	modal: service(),
-	store: service(),
+export default class VersioncheckService extends Service {
+	/** @type {ModalService} */
+	@service modal;
+	/** @type {DS.Store} */
+	@service store;
 
-	version,
+	version = version;
+
+	/** @type {Versioncheck} */
+	model = null;
+	/** @type {GithubReleases} */
+	release = null;
 
 
-	model: null,
+	async check() {
+		try {
+			/** @type {Versioncheck} */
+			const record = await this.store.findRecord( "versioncheck", 1 );
+			// versioncheck record found: existing user
+			set( this, "model", record );
+			await this._notFirstRun();
+
+		} catch ( e ) {
+			// versioncheck record not found: new user
+			await this._firstRun();
+		}
+	}
+
+	async ignoreRelease() {
+		const record = this.model;
+		set( record, "checkagain", +new Date() + checkAgain );
+
+		await record.save();
+	}
 
 
-	check() {
-		// get the installed version
-		let current = get( this, "version" );
-		if ( !current ) { return; }
+	async _notFirstRun() {
+		// is previous version string empty or lower than current version?
+		if ( !this.model.version || semver.lt( this.model.version, this.version ) ) {
+			// NEW version -> update record
+			set( this.model, "version", this.version );
+			await this.model.save();
 
-		const store = get( this, "store" );
-		store.findRecord( "versioncheck", 1 )
-			.then(
-				// versioncheck record found: existing user
-				record => this.notFirstRun( record ),
-				// versioncheck record not found: new user
-				() => this.firstRun()
-			)
-			.then( modalSkipped => {
-				if ( !modalSkipped ) { return; }
-				// go on with new version check if no modal has been opened
-				this.checkForNewRelease();
-			});
-	},
-
-	notFirstRun( record ) {
-		set( this, "model", record );
-
-		let current = get( this,   "version" );
-		let version = get( record, "version" );
-
-		// if previous version string is empty, don't skip (new version)
-		// skip if previous version is gte current version (read from metadata)
-		if ( version && semver.gte( version, current ) ) {
-			return true;
+			// don't show changelog modal if versioncheck is enabled
+			// manual upgrades mean that the user has (most likely) seen the changelog already
+			if ( !argv[ ARG_VERSIONCHECK ] ) {
+				await this._openModalAndCheckForNewRelease( "changelog" );
+				return;
+			}
 		}
 
-		// NEW version -> upgrade record
-		set( record, "version", current );
-		record.save();
+		// go on with new version check if no modal was opened
+		await this._checkForNewRelease();
+	}
 
-		// don't show modal if versioncheck is enabled (manual upgrades)
-		// manual upgrades -> user has (most likely) seen changelog already
-		if ( argv[ ARG_VERSIONCHECK ] ) {
-			return true;
-		}
-
-		// show changelog modal dialog
-		get( this, "modal" ).openModal( "changelog" );
-	},
-
-	firstRun() {
-		const store   = get( this, "store" );
-		const version = get( this, "version" );
-
+	async _firstRun() {
 		// unload automatically created record and create a new one instead
-		let record = store.peekRecord( "versioncheck", 1 );
+		/** @type {Versioncheck} */
+		let record = this.store.peekRecord( "versioncheck", 1 );
+		/* istanbul ignore next */
 		if ( record ) {
-			store.unloadRecord( record );
+			this.store.unloadRecord( record );
 		}
-		record = store.createRecord( "versioncheck", {
-			id: 1,
-			version
-		});
-		record.save();
 
+		record = this.store.createRecord( "versioncheck", {
+			id: 1,
+			version: this.version
+		});
+		await record.save();
 		set( this, "model", record );
 
 		// show first run modal dialog
-		get( this, "modal" ).openModal( "firstrun", this );
-	},
+		await this._openModalAndCheckForNewRelease( "firstrun" );
+	}
 
+	async _openModalAndCheckForNewRelease( name ) {
+		await this.modal.openModal( name, this );
+		this.modal.one( "close", ( modal, context ) => {
+			/* istanbul ignore else */
+			if ( context === this ) {
+				this._checkForNewRelease();
+			}
+		});
+	}
 
-	checkForNewRelease() {
-		// don't check for new releases if disabled
-		if ( !argv[ ARG_VERSIONCHECK ] ) { return; }
+	async _checkForNewRelease() {
+		// don't check for new releases if disabled or re-check threshold not yet reached
+		if ( !argv[ ARG_VERSIONCHECK ] || +new Date() < this.model.checkagain ) { return; }
 
-		let checkagain = get( this, "model.checkagain" );
-		if ( checkagain <= +new Date() ) {
-			this.getReleases();
-		}
-	},
+		/** @type {GithubReleases} */
+		const release = await this.store.queryRecord( "github-releases", "latest" );
+		set( this, "release", release );
 
-	getReleases() {
-		get( this, "store" ).findRecord( "githubReleases", "latest", { reload: true } )
-			.then( release => this.checkRelease( release ) );
-	},
-
-	checkRelease( release ) {
-		let latest = get( release, "tag_name" );
-		let version = get( this, "version" );
-		let current = `v${version}`;
-
-		// no new release? check again in a few days
-		if ( semver.gte( current, latest ) ) {
+		if ( semver.gte( this.version, release.version ) ) {
 			return this.ignoreRelease();
 		}
 
-		// ask the user what to do
-		get( this, "modal" ).openModal( "newrelease", this, {
-			versionOutdated: current,
-			versionLatest  : latest,
-			downloadURL    : get( release, "html_url" )
-		});
-	},
-
-	ignoreRelease() {
-		let record = get( this, "model" );
-		record.set( "checkagain", +new Date() + checkAgain );
-
-		return record.save();
+		await this.modal.openModal( "newrelease", this );
 	}
-});
+}

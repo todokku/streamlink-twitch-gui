@@ -1,10 +1,11 @@
+import { computed } from "@ember/object";
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
 import { name } from "utils/decorators";
 
 
 @name( "releases" )
-export default class GithubRelease extends Model {
+export default class GithubReleases extends Model {
 	@attr
 	assets;
 	@attr
@@ -37,4 +38,9 @@ export default class GithubRelease extends Model {
 	url;
 	@attr
 	zipball_url;
+
+	@computed( "tag_name" )
+	get version() {
+		return this.tag_name.replace( /^v/, "" );
+	}
 }
