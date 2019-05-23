@@ -1,5 +1,6 @@
 import attr from "ember-data/attr";
 import Model from "ember-data/model";
+import { array } from "ember-data-model-fragments/attributes";
 import { name } from "utils/decorators";
 
 
@@ -7,7 +8,7 @@ import { name } from "utils/decorators";
 export default class TwitchRoot extends Model {
 	@attr( "date" )
 	created_at;
-	@attr( "" )
+	@array( "string" )
 	scopes;
 	@attr( "date" )
 	updated_at;

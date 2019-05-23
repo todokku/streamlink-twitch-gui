@@ -20,7 +20,7 @@ export default class UserIndexController extends Controller {
 		/** @type {Auth} */
 		const session = this.auth.session;
 
-		return session
+		return session && session.scope
 			? session.scope.split( "+" ).join( ", " )
 			: "";
 	}
