@@ -53,6 +53,15 @@ settings-channel-item:
     confirmation: Unset custom settings?
     confirm: Yes
     decline: No
+settings-hotkey:
+    primary: The action's primary hotkey
+    secondary: The action's secondary hotkey
+    empty: No hotkey set
+    edit: Customize this hotkey
+    delete: Unset custom hotkey
+    discard: Discard
+    confirm: Set custom hotkey
+    toggle: Enable or disable this hotkey
 settings-row:
     notes: Notes
     default: Default
